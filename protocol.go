@@ -24,7 +24,8 @@ func (e Error) Error() string {
 // Reply is a server response to command.
 type Reply struct {
 	Error  *Error          `json:"error"`
-	Result json.RawMessage `json:"result"`
+	Result json.RawMessage `json:"body"`
+	Method json.RawMessage `json:"method"`
 }
 
 // ClientInfo represents information about one client connection to Centrifugo.
@@ -70,7 +71,8 @@ type InfoResult struct {
 
 // PresenceResult is a result of presence command.
 type PresenceResult struct {
-	Presence map[string]ClientInfo `json:"presence"`
+	Channel string                `json:"channel"`
+	Data    map[string]ClientInfo `json:"data"`
 }
 
 // PresenceStatsResult is a result of info command.

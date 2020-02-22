@@ -4,12 +4,13 @@ package gocent
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 )
@@ -34,6 +35,8 @@ func (e ErrStatusCode) Error() string {
 type Config struct {
 	// Addr is Centrifugo API endpoint.
 	Addr string
+	// Secret to generate token.
+	Secret string
 	// Key is Centrifugo API key.
 	Key string
 	// HTTPClient is a custom HTTP client to be used.
@@ -47,6 +50,7 @@ type Client struct {
 
 	endpoint   string
 	apiKey     string
+	secret     string
 	httpClient *http.Client
 	cmds       []Command
 }
@@ -58,10 +62,6 @@ var DefaultHTTPClient = &http.Client{Transport: &http.Transport{
 
 // New returns initialized client instance based on provided config.
 func New(c Config) *Client {
-	addr := strings.TrimRight(c.Addr, "/")
-	if !strings.HasSuffix(addr, "/api") {
-		addr = addr + "/api"
-	}
 	var httpClient *http.Client
 	if c.HTTPClient != nil {
 		httpClient = c.HTTPClient
@@ -69,7 +69,8 @@ func New(c Config) *Client {
 		httpClient = DefaultHTTPClient
 	}
 	return &Client{
-		endpoint:   addr,
+		endpoint:   c.Addr,
+		secret:     c.Secret,
 		apiKey:     c.Key,
 		httpClient: httpClient,
 	}
@@ -336,6 +337,11 @@ func (c *Client) send(ctx context.Context, cmds []Command) ([]Reply, error) {
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", "apikey "+c.apiKey)
 	}
+
+	if c.secret != "" {
+		req.Header.Set("X-API-Sign", c.generateHashSign(buf.String()))
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -351,15 +357,17 @@ func (c *Client) send(ctx context.Context, cmds []Command) ([]Reply, error) {
 	var replies []Reply
 
 	dec := json.NewDecoder(resp.Body)
-	for {
-		var rep Reply
-		if err := dec.Decode(&rep); err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, err
-		}
-		replies = append(replies, rep)
-	}
+	err = dec.Decode(&replies)
 
 	return replies, err
+}
+
+func (c *Client) generateHashSign(data string) (hashSign string) {
+	h := hmac.New(sha256.New, []byte(c.secret))
+
+	h.Write([]byte(data))
+
+	hashSign = hex.EncodeToString(h.Sum(nil))
+
+	return
 }
