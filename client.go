@@ -101,7 +101,7 @@ func (c *Client) Publish(ctx context.Context, channel string, data []byte) error
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return resp.Error
+		return errors.New(*resp.Error)
 	}
 	return nil
 }
@@ -119,7 +119,7 @@ func (c *Client) Broadcast(ctx context.Context, channels []string, data []byte) 
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return resp.Error
+		return errors.New(*resp.Error)
 	}
 	return nil
 }
@@ -137,7 +137,7 @@ func (c *Client) Unsubscribe(ctx context.Context, channel, user string) error {
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return resp.Error
+		return errors.New(*resp.Error)
 	}
 	return nil
 }
@@ -155,7 +155,7 @@ func (c *Client) Disconnect(ctx context.Context, user string) error {
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return resp.Error
+		return errors.New(*resp.Error)
 	}
 	return nil
 }
@@ -173,7 +173,7 @@ func (c *Client) Presence(ctx context.Context, channel string) (PresenceResult, 
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return PresenceResult{}, resp.Error
+		return PresenceResult{}, errors.New(*resp.Error)
 	}
 	return decodePresence(resp.Result)
 }
@@ -191,7 +191,7 @@ func (c *Client) PresenceStats(ctx context.Context, channel string) (PresenceSta
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return PresenceStatsResult{}, resp.Error
+		return PresenceStatsResult{}, errors.New(*resp.Error)
 	}
 	return decodePresenceStats(resp.Result)
 }
@@ -209,7 +209,7 @@ func (c *Client) History(ctx context.Context, channel string) (HistoryResult, er
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return HistoryResult{}, resp.Error
+		return HistoryResult{}, errors.New(*resp.Error)
 	}
 	return decodeHistory(resp.Result)
 }
@@ -227,7 +227,7 @@ func (c *Client) Channels(ctx context.Context) (ChannelsResult, error) {
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return ChannelsResult{}, resp.Error
+		return ChannelsResult{}, errors.New(*resp.Error)
 	}
 	return decodeChannels(resp.Result)
 }
@@ -245,7 +245,7 @@ func (c *Client) Info(ctx context.Context) (InfoResult, error) {
 	}
 	resp := result[0]
 	if resp.Error != nil {
-		return InfoResult{}, resp.Error
+		return InfoResult{}, errors.New(*resp.Error)
 	}
 	return decodeInfo(resp.Result)
 }

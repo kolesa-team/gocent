@@ -23,7 +23,7 @@ func (e Error) Error() string {
 
 // Reply is a server response to command.
 type Reply struct {
-	Error  *Error          `json:"error"`
+	Error  *string         `json:"error"`
 	Result json.RawMessage `json:"body"`
 	Method json.RawMessage `json:"method"`
 }
