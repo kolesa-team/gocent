@@ -339,7 +339,7 @@ func (c *Client) send(ctx context.Context, cmds []Command) ([]Reply, error) {
 	}
 
 	if c.secret != "" {
-		req.Header.Set("X-API-Sign", c.generateHashSign(buf.String()))
+		req.Header.Set("X-API-Sign", c.GenerateHashSign(buf.String()))
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -362,10 +362,12 @@ func (c *Client) send(ctx context.Context, cmds []Command) ([]Reply, error) {
 	return replies, err
 }
 
-func (c *Client) generateHashSign(data string) (hashSign string) {
+func (c *Client) GenerateHashSign(data ...string) (hashSign string) {
 	h := hmac.New(sha256.New, []byte(c.secret))
 
-	h.Write([]byte(data))
+	for _, d := range data {
+		h.Write([]byte(d))
+	}
 
 	hashSign = hex.EncodeToString(h.Sum(nil))
 
